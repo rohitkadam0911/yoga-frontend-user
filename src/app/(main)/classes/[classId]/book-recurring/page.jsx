@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+import { getClassSessionsByClassApi } from "@/services/class.service";
+import { createBookingApi } from "@/services/booking.service";
 
 export default function BookRecurringPage() {
     const params = useParams();
@@ -26,20 +26,9 @@ export default function BookRecurringPage() {
                 setLoading(true);
                 setError("");
 
-                const res = await fetch(
-                    `${API_URL}/class-sessions/class/${classId}`
-                );
-
-                const data = await res.json();
-
-                if (!res.ok || !data.success) {
-                    throw new Error(
-                        data.message ||
-                        "Failed to fetch class sessions"
-                    );
-                }
-
-                setSessions(data.data || []);
+                const res = await getClassSessionsByClassApi(classId);
+                const sessionData = res.data?.data || [];
+                setSessions(Array.isArray(sessionData) ? sessionData : []);
             } catch (error) {
                 console.error(
                     "Failed to fetch sessions:",
@@ -47,6 +36,7 @@ export default function BookRecurringPage() {
                 );
 
                 setError(
+                    error.response?.data?.message ||
                     error.message ||
                     "Failed to load sessions"
                 );
@@ -108,32 +98,16 @@ export default function BookRecurringPage() {
             const bookingResults = [];
 
             for (const sessionId of selectedSessionIds) {
-                const res = await fetch(
-                    `${API_URL}/bookings/create`,
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type":
-                                "application/json"
-                        },
-                        credentials: "include",
-                        body: JSON.stringify({
-                            classId,
-                            sessionId
-                        })
-                    }
-                );
+                const res = await createBookingApi(classId, sessionId);
 
-                const data = await res.json();
-
-                if (!res.ok || !data.success) {
+                if (!res.data?.success) {
                     throw new Error(
-                        data.message ||
+                        res.data?.message ||
                         "Booking failed"
                     );
                 }
 
-                bookingResults.push(data);
+                bookingResults.push(res.data);
             }
 
             alert(
@@ -148,6 +122,7 @@ export default function BookRecurringPage() {
             );
 
             alert(
+                error.response?.data?.message ||
                 error.message ||
                 "An error occurred during booking."
             );

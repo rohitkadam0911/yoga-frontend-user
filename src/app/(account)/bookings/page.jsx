@@ -13,11 +13,6 @@ export default function BookingsPage() {
   const [confirmingId, setConfirmingId] = useState(null);
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-    fetchBookings();
-  }, []);
-
   const fetchBookings = async () => {
     try {
       const res = await getMyBookingsApi();
@@ -28,6 +23,11 @@ export default function BookingsPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    setMounted(true);
+    fetchBookings();
+  }, []);
 
   const filteredBookings = useMemo(() => {
     if (filter === "All") return bookings;

@@ -12,10 +12,6 @@ export default function TimetablePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    fetchSessions();
-  }, []);
-
   const fetchSessions = async () => {
     try {
       setError("");
@@ -30,6 +26,10 @@ export default function TimetablePage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchSessions();
+  }, []);
 
   const getDayName = (dateString) =>
     new Date(dateString).toLocaleDateString("en-US", { weekday: "long" });
