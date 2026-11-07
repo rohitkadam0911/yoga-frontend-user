@@ -10,11 +10,13 @@ const api = axios.create({
     }
 });
 
-// Interceptor to ensure LAN / mobile access dynamically uses current host if baseURL is pointing to localhost
+// Interceptor to ensure local LAN / Wi-Fi mobile testing dynamically uses the LAN IP if baseURL is pointing to localhost
 api.interceptors.request.use((config) => {
     if (typeof window !== "undefined" && window.location.hostname) {
         const hostname = window.location.hostname;
-        if (hostname !== "localhost" && hostname !== "127.0.0.1") {
+        const isPrivateLanIp = /^(192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/.test(hostname);
+
+        if (isPrivateLanIp) {
             try {
                 const currentBase = config.baseURL || defaultBaseURL;
                 const url = new URL(currentBase, window.location.origin);
