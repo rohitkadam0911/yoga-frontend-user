@@ -258,7 +258,9 @@ export default function HomePage() {
 
           {!loadingClasses && classes.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {classes.map((cls) => (
+            
+              {classes
+              .map((cls) => (
                 <Link
                   key={cls._id}
                   href={`/classes/${cls._id}`}
