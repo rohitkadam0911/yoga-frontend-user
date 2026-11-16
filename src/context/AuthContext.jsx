@@ -11,13 +11,23 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  // On first load, check if a valid session cookie exists
+  // On first load, check if a stored token exists
   useEffect(() => {
     const fetchProfile = async () => {
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
       try {
         const res = await getProfileApi();
         setUser(res.data.data);
       } catch (error) {
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("token");
+        }
         setUser(null);
       } finally {
         setLoading(false);
@@ -28,6 +38,9 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     const res = await loginApi(credentials);
+    if (res.data?.token && typeof window !== "undefined") {
+      localStorage.setItem("token", res.data.token);
+    }
     setUser(res.data.data);
     return res.data;
   };
@@ -38,9 +51,17 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
-    await logoutApi();
-    setUser(null);
-    router.push("/login");
+    try {
+      await logoutApi();
+    } catch (e) {
+      // Ignore network errors during logout
+    } finally {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
+      }
+      setUser(null);
+      router.push("/login");
+    }
   };
 
   return (
